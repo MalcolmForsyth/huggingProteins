@@ -15,16 +15,15 @@ import re
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument(“-p”, "--pretrained_model", help="path to the pretrained transformer", default='../models/proberta4/checkpoint-1160000')
-parser.add_argument(“-t”, "--train", help="path to the train dataset", default='../Datasets/Degree_tokenized_split_three_ways/sorted_train.csv')
-parser.add_argument(“-ts”, "--test", help="provide the path to the test dataset", default='../Datasets/Degree_tokenized_split_three_ways/sorted_test.csv')
+parser.add_argument(“-p”, "--pretrained_model", help="path to the pretrained transformer", default='proberta4/checkpoint-1160000')
+parser.add_argument(“-t”, "--train", help="path to the train dataset", default='Datasets/Degree_tokenized_split_three_ways/sorted_train.csv')
+parser.add_argument(“-v”, "--valid", help="provide the path to the test dataset", default='Datasets/Degree_tokenized_split_three_ways/sorted_test.csv')
 parser.add_argument(“-o”, "--output_dir", help="path to the output_dir", required=True)
-parser.add_argument(“-p”, "--pretrained_model", help="provide the path to the pretrained transformer", default='../models/proberta4/checkpoint-1160000')
 parser.add_argument(“-fp”, "--fp16", help="fp16 mixed precision", action="store_true")
 parser.add_argument(“-e”, "--epochs", help="number of training epochs", default=200, type=int)
 parser.add_argument(“-lr”, "--learning_rate", help="learning rate", default=5e-7, type=float)
 parser.add_argument(“-b”, "--batch_size", help="training batch size", default=256, type=int)
-parser.add_argument(“-tk”, "--tokenizer", help="path to the tokenizer", default="../models/proberta512")
+parser.add_argument(“-tk”, "--tokenizer", help="path to the tokenizer", default="proberta512")
 parser.add_argument(“-m”, "--max_length", help="max length of the model", default=512, type=int)
 
 
@@ -34,11 +33,11 @@ class ProteinDegreeDataset(Dataset):
 
     def __init__(self, split="train", max_length=args.max_length):
         self.trainFilePath = args.train
-        self.testFilePath = args.test
+        self.validFilePath = args.valid
         if split=="train":
             self.seqs, self.labels = self.load_dataset(self.trainFilePath)
         else:
-            self.seqs, self.labels = self.load_dataset(self.testFilePath)
+            self.seqs, self.labels = self.load_dataset(self.validFilePath)
 
         self.tokenizer = RobertaTokenizerFast.from_pretrained(args.tokenizer)
 
