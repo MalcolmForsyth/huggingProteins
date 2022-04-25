@@ -13,17 +13,17 @@ import os
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument(“-t”, "--train", help="path to the train dataset", default='/tokenized_train_dataset_proberta2')
-parser.add_argument(“-v”, "--valid", help="provide the path to the test dataset", default='tokenized_validation_dataset_proberta2')
-parser.add_argument(“-o”, "--output_dir", help="path to the output_dir", required=True)
-parser.add_argument(“-fp”, "--fp16", help="fp16 mixed precision", action="store_true")
-parser.add_argument(“-e”, "--epochs", help="number of training epochs", default=200, type=int)
-parser.add_argument(“-lr”, "--learning_rate", help="learning rate", default=1.5e-4, type=float)
-parser.add_argument(“-b”, "--batch_size", help="training batch size", default=256, type=int)
-parser.add_argument(“-tk”, "--tokenizer", help="path to the tokenizer", default="proberta512")
-parser.add_argument(“-m”, "--max_length", help="max length of the model", default=512, type=int)
-parser.add_argument(“-h”, "--hidden_layers", help="number of hidden layers", default=6, type=int)
-parser.add_argument(“-ah”, "--attention_heads", help="number of attention heads", default=12, type=int)
+parser.add_argument('-t', '--train', help='path to the train dataset', default='tokenized_train_dataset_proberta2')
+parser.add_argument('-v', '--valid', help='provide the path to the test dataset', default='tokenized_validation_dataset_proberta2')
+parser.add_argument('-o', '--output_dir', help='path to the output_dir', required=True)
+parser.add_argument('-fp', '--fp16', help='fp16 mixed precision', action='store_true')
+parser.add_argument('-e', '--epochs', help='number of training epochs', default=200, type=int)
+parser.add_argument('-lr', '--learning_rate', help='learning rate', default=1.5e-4, type=float)
+parser.add_argument('-b', '--batch_size', help='training batch size', default=40, type=int)
+parser.add_argument('-tk', '--tokenizer', help='path to the tokenizer', default='proberta512')
+parser.add_argument('-m', '--max_length', help='max length of the model', default=512, type=int)
+parser.add_argument('-hl', '--hidden_layers', help='number of hidden layers', default=6, type=int)
+parser.add_argument('-ah', '--attention_heads', help='number of attention heads', default=12, type=int)
 
 
 args = parser.parse_args()
@@ -37,8 +37,8 @@ tokenized_validation_dataset.set_format('torch', columns=['input_ids', 'attentio
 config = RobertaConfig(
     vocab_size=10_000,
     max_position_embeddings=max_length + 2,
-    num_attention_heads=12,
-    num_hidden_layers=6,
+    num_attention_heads=args.attention_heads,
+    num_hidden_layers=args.hidden_layers,
     type_vocab_size=1,
 )
 
@@ -57,12 +57,12 @@ training_args = TrainingArguments(
     eval_steps=10_000,
     evaluation_strategy="steps",
     metric_for_best_model="loss",
-    save_steps=500,
+    save_steps=10_000,
     save_total_limit=100,
     prediction_loss_only=True,
     load_best_model_at_end=True,
     fp16=args.fp16,
-    learning_rate=args.lr,
+    learning_rate=args.learning_rate,
     logging_dir=os.path.join('../ModelLogs', args.output_dir)
 )
 
@@ -74,7 +74,7 @@ trainer = Trainer(
     eval_dataset=tokenized_validation_dataset['train']
 )
 
-if os.path.isdir(os.path.join('../models', args.output_dir)):
+if os.path.isdir(os.path.join('../models', args.output_dir, 'checkpoint-10000')):
     trainer.train(resume_from_checkpoint=True)
 else:
     trainer.train()
