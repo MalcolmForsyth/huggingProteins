@@ -29,8 +29,19 @@ parser.add_argument('-ah', '--attention_heads', help='number of attention heads'
 args = parser.parse_args()
 
 max_length = args.max_length
-tokenized_train_dataset = load_from_disk(os.path.join('../Datasets', args.train))
-tokenized_validation_dataset = load_from_disk(os.path.join('../Datasets', args.valid))
+
+train_file = os.path.join('../Datasets', args.train)
+validate_file = os.path.join('../Datasets', args.valid)
+
+
+train_dataset = load_dataset('text', data_files={'train': train_file})
+validate_dataset = load_dataset('text', data_files={'train': validate_file})
+
+tokenizer = RobertaTokenizerFast.from_pretrained(os.path.join("../models", args.tokenizer), max_len=max_length)
+
+tokenized_train_dataset = train_dataset.map(lambda examples: tokenizer(examples['text'], truncation=True, max_length=max_length), batched=True, batch_size=100000, writer_batch_size=100000)
+tokenized_validation_dataset = validate_dataset.map(lambda examples: tokenizer(examples['text'], truncation=True, max_length=max_length), batched=True, batch_size=100000, writer_batch_size=100000)
+
 tokenized_train_dataset.set_format('torch', columns=['input_ids', 'attention_mask', 'text'])
 tokenized_validation_dataset.set_format('torch', columns=['input_ids', 'attention_mask', 'text'])
 
@@ -42,7 +53,6 @@ config = RobertaConfig(
     type_vocab_size=1,
 )
 
-tokenizer = RobertaTokenizerFast.from_pretrained(os.path.join("../models", args.tokenizer), max_len=max_length)
 model = RobertaForMaskedLM(config=config)
 
 data_collator = DataCollatorForLanguageModeling(
