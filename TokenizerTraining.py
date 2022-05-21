@@ -43,5 +43,5 @@ dataset = load_dataset(path)
 print('training')
 tokenizer = train(dataset, tokenizer, trainer, output_dir)
 
-output = tokenizer(dataset[0])
+output = tokenize(dataset[0])
 print(output)
